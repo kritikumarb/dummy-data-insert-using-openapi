@@ -1,6 +1,8 @@
 package com.datainsert.data_insert.service;
 
+import com.datainsert.data_insert.dto.CadreDTO;
 import com.datainsert.data_insert.entity.Cadre;
+import com.datainsert.data_insert.mapper.CadreMapper;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -13,11 +15,13 @@ import java.util.Map;
 @Service
 public class AiDataInsertService {
 
-    BeanOutputConverter<Cadre> beanOutputConverter = new BeanOutputConverter<>(Cadre.class);
+    BeanOutputConverter<CadreDTO> beanOutputConverter = new BeanOutputConverter<>(CadreDTO.class);
     private final ChatClient chatClient;
+    private final CadreMapper cadreMapper;
 
-    public AiDataInsertService(ChatClient.Builder chatClientBuilder) {
+    public AiDataInsertService(ChatClient.Builder chatClientBuilder, CadreMapper cadreMapper) {
         this.chatClient = chatClientBuilder.build();
+        this.cadreMapper = cadreMapper;
     }
     String userMsg = """
              Your response should be in JSON format.
@@ -88,13 +92,22 @@ public class AiDataInsertService {
             Prompt prompt = promptTemplate.create(Map.of("format", format));
 
             ChatResponse chatResponse = chatClient.prompt(prompt).call().chatResponse();
-            Cadre cadre = beanOutputConverter.convert(chatResponse.getResult().getOutput().getContent());
+            CadreDTO cadre = beanOutputConverter.convert(chatResponse.getResult().getOutput().getContent());
 
-            return cadre;
+            return convertResponse(cadre);
         }catch (Exception e){
             System.out.println("Error occured in AI response");
             return null;
         }
+    }
+
+    public Cadre convertResponse(CadreDTO cadreDTO){
+        return cadreMapper.toEntity(cadreDTO);
+    }
+
+    public String getAiResponse(String prompt) {
+        ChatResponse chatResponse = chatClient.prompt(prompt).call().chatResponse();
+        return chatResponse.getResult().getOutput().getContent();
     }
 
 
