@@ -1,5 +1,6 @@
 package com.datainsert.data_insert.service;
 
+import com.datainsert.data_insert.dto.CadreDTO;
 import com.datainsert.data_insert.entity.Cadre;
 import com.datainsert.data_insert.repository.CadreRepository;
 import org.springframework.stereotype.Service;
@@ -15,9 +16,9 @@ public class DataInsertService {
         this.cadreRepository = cadreRepository;
     }
 
-    public String insertData() {
-        Cadre fakeDataForCadre = aiDataInsertService.getFakeDataForCadre();
+    public CadreDTO insertData() {
+        CadreDTO fakeDataForCadre = aiDataInsertService.getFakeDataForCadre();
 
-        return "Hello";
+        return fakeDataForCadre;
     }
 }

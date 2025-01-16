@@ -3,6 +3,7 @@ package com.datainsert.data_insert.service;
 import com.datainsert.data_insert.dto.CadreDTO;
 import com.datainsert.data_insert.entity.Cadre;
 import com.datainsert.data_insert.mapper.CadreMapper;
+import com.datainsert.data_insert.repository.CadreRepository;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -18,10 +19,12 @@ public class AiDataInsertService {
     BeanOutputConverter<CadreDTO> beanOutputConverter = new BeanOutputConverter<>(CadreDTO.class);
     private final ChatClient chatClient;
     private final CadreMapper cadreMapper;
+    private final CadreRepository cadreRepository;
 
-    public AiDataInsertService(ChatClient.Builder chatClientBuilder, CadreMapper cadreMapper) {
+    public AiDataInsertService(ChatClient.Builder chatClientBuilder, CadreMapper cadreMapper, CadreRepository cadreRepository) {
         this.chatClient = chatClientBuilder.build();
         this.cadreMapper = cadreMapper;
+        this.cadreRepository = cadreRepository;
     }
     String userMsg = """
              Your response should be in JSON format.
@@ -84,8 +87,9 @@ public class AiDataInsertService {
               imageStatus: A string representing the image status. Use "Uploaded", "Pending", or "Rejected".
               membershipType: A string representing the membership type. Use "Primary", "Secondary", or "Associate".
               isEnrolled: A string representing whether the cadre is enrolled. Use "Yes" or "No".
+              {format}
             """;
-    public Cadre getFakeDataForCadre() {
+    public CadreDTO getFakeDataForCadre() {
         try{
             String format = beanOutputConverter.getFormat();
             PromptTemplate promptTemplate = new PromptTemplate(userMsg);
@@ -93,8 +97,8 @@ public class AiDataInsertService {
 
             ChatResponse chatResponse = chatClient.prompt(prompt).call().chatResponse();
             CadreDTO cadre = beanOutputConverter.convert(chatResponse.getResult().getOutput().getContent());
-
-            return convertResponse(cadre);
+            cadreRepository.save(convertResponse(cadre));
+            return cadre;
         }catch (Exception e){
             System.out.println("Error occured in AI response");
             return null;

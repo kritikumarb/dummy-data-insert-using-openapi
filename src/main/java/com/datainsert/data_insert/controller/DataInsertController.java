@@ -1,5 +1,6 @@
 package com.datainsert.data_insert.controller;
 
+import com.datainsert.data_insert.dto.CadreDTO;
 import com.datainsert.data_insert.service.AiDataInsertService;
 import com.datainsert.data_insert.service.DataInsertService;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ public class DataInsertController {
     }
 
     @GetMapping("/ping")
-    public String insertData() {
+    public CadreDTO insertData() {
         return dataInsertService.insertData();
     }
 }
